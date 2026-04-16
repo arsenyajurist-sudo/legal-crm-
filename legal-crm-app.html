@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Юридический CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f2f0eb;color:#1a1a1a;min-height:100vh}
+
+/* NAV */
+.app-nav{background:#1a1a1a;padding:0 20px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:50}
+.nav-logo{color:#fff;font-size:15px;font-weight:600;padding:14px 16px 14px 0;margin-right:8px;border-right:1px solid #333;white-space:nowrap}
+.nav-tab{color:#888;font-size:13px;padding:14px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+.nav-tab:hover{color:#ccc}
+.nav-tab.active{color:#fff;border-bottom-color:#fff}
+
+/* LAYOUT */
+.page{display:none;padding:20px;max-width:1140px;margin:0 auto}
+.page.active{display:block}
+
+/* CARDS */
+.card{background:#fff;border-radius:14px;padding:18px;border:1px solid #e8e5de}
+.card-sm{background:#fff;border-radius:12px;padding:14px;border:1px solid #e8e5de}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.metric{background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #e8e5de}
+.m-label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.m-val{font-size:28px;font-weight:700;line-height:1}
+.m-sub{font-size:11px;color:#bbb;margin-top:3px}
+
+/* BUTTONS */
+.btn{padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer;transition:opacity .12s}
+.btn:hover{opacity:.85}
+.btn-dark{background:#1a1a1a;color:#fff;border:none}
+.btn-light{background:#f2f0eb;color:#1a1a1a;border:1px solid #d8d5ce}
+
+/* TAGS */
+.tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
+.tag-civ{background:#dce8ff;color:#1a3a7a}
+.tag-arb{background:#fff0cc;color:#7a4a00}
+.tag-crim{background:#ffe0e0;color:#7a1a1a}
+.tag-corp{background:#dcf5e8;color:#1a5a35}
+.tag-g{background:#f0ede8;color:#666;border:1px solid #e0ddd5}
+
+/* STATUS */
+.status{display:inline-block;font-size:11px;font-weight:500;padding:2px 9px;border-radius:10px}
+.s-active{background:#dcf5e8;color:#1a5a35}
+.s-court{background:#dce8ff;color:#1a3a7a}
+.s-pause{background:#fff0cc;color:#7a4a00}
+.s-done{background:#f0ede8;color:#888}
+
+/* SECTION HEADER */
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.sec-title{font-size:16px;font-weight:600}
+
+/* ===== DASHBOARD ===== */
+.dash-grid{display:grid;grid-template-columns:1fr 300px;gap:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;color:#999;font-weight:500;padding:6px 8px;border-bottom:1px solid #eee;text-transform:uppercase;letter-spacing:.04em}
+td{padding:9px 8px;border-bottom:1px solid #f5f3ee;vertical-align:middle}
+tr:last-child td{border:none}
+tr:hover td{background:#faf9f7}
+.search-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.search-row input,.search-row select{padding:7px 10px;border:1px solid #d8d5ce;border-radius:8px;font-size:13px;color:#1a1a1a;background:#fff}
+.search-row input{flex:1;min-width:140px}
+.act-btn{background:none;border:1px solid #e0ddd5;border-radius:6px;padding:3px 9px;font-size:11px;color:#666;cursor:pointer}
+.act-btn:hover{background:#f5f4f0}
+.ev-item{padding:9px 0;border-bottom:1px solid #f5f3ee}
+.ev-item:last-child{border:none}
+.ev-meta{font-size:11px;color:#bbb;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+.ev-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.ev-client{font-size:11px;color:#999}
+
+/* ===== CALENDAR ===== */
+.cal-nav{display:flex;align-items:center;gap:8px}
+.cal-month{font-size:15px;font-weight:600;min-width:150px;text-align:center}
+.day-names{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-bottom:4px}
+.dname{text-align:center;font-size:11px;color:#999;padding:5px 0;text-transform:uppercase;letter-spacing:.04em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#e8e5de;border:1px solid #e8e5de;border-radius:14px;overflow:hidden}
+.cell{background:#fff;min-height:86px;padding:6px;cursor:default}
+.cell:hover{background:#faf9f7}
+.cell.other .dnum{color:#ccc}
+.cell.today{background:#eef2ff}
+.cell.today .dnum{color:#2d5be3;font-weight:700}
+.dnum{font-size:12px;font-weight:500;margin-bottom:3px;color:#1a1a1a}
+.ev-pill{font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.5}
+.ev-pill:hover{filter:brightness(.9)}
+.ep-court{background:#dce8ff;color:#1a3a7a}
+.ep-deadline{background:#ffe0e0;color:#7a1a1a}
+.ep-meeting{background:#dcf5e8;color:#1a5a35}
+.ep-filing{background:#fff0cc;color:#7a4a00}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#888}
+.leg-dot{width:9px;height:9px;border-radius:2px}
+.detail-box{margin-top:10px;padding:12px 14px;background:#faf9f7;border-radius:10px;border:1px solid #ece9e2;display:none}
+.detail-box.on{display:block}
+.add-form{margin-top:10px;padding:12px 14px;background:#faf9f7;border-radius:10px;border:1px solid #ece9e2;display:none}
+.add-form.on{display:block}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.form-row input,.form-row select{padding:7px 10px;border:1px solid #d8d5ce;border-radius:8px;font-size:13px;background:#fff;color:#1a1a1a}
+.form-row input[type=text]{flex:1;min-width:150px}
+.form-row input[type=date]{min-width:140px}
+.form-row input[type=time]{width:90px}
+
+/* ===== KANBAN ===== */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.kb-col{background:#eceae5;border-radius:14px;padding:11px;border:1.5px solid #e0ddd5;min-height:360px;transition:border-color .15s}
+.kb-col.over{border-color:#1a1a1a;background:#e8e6e0}
+.kb-col-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.kb-col-name{font-size:13px;font-weight:600;color:#1a1a1a}
+.kb-cnt{font-size:11px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:1px 8px;color:#888}
+.kcard{background:#fff;border:1px solid #e8e5de;border-radius:10px;padding:10px;margin-bottom:7px;cursor:grab;transition:border-color .12s}
+.kcard:hover{border-color:#ccc}
+.kcard.dragging{opacity:.25;cursor:grabbing}
+.kcard-name{font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:5px;line-height:1.35}
+.kcard-tags{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px}
+.kcard-date{font-size:10px;color:#bbb}
+.kcard-date.urg{color:#c03030;font-weight:600}
+.k-addbtn{width:100%;background:none;border:1px dashed #ccc;border-radius:9px;padding:8px;font-size:11px;color:#bbb;cursor:pointer;margin-top:4px;text-align:left;transition:border-color .12s,color .12s}
+.k-addbtn:hover{border-color:#888;color:#666}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:16px;padding:22px;width:360px;border:1px solid #e0ddd5;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:14px;color:#1a1a1a}
+.modal label{font-size:12px;color:#888;display:block;margin-bottom:3px;margin-top:10px}
+.modal label:first-of-type{margin-top:0}
+.modal input,.modal select,.modal textarea{width:100%;padding:8px 10px;border:1px solid #d8d5ce;border-radius:8px;font-size:13px;color:#1a1a1a;background:#fff}
+.modal textarea{height:64px;resize:none}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+@media(max-width:700px){
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .dash-grid{grid-template-columns:1fr}
+  .board{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:450px){
+  .board{grid-template-columns:1fr}
+  .cal-month{min-width:100px;font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<nav class="app-nav">
+  <div class="nav-logo">⚖ ЮрCRM</div>
+  <div class="nav-tab active" onclick="showPage('dash',this)">Дашборд</div>
+  <div class="nav-tab" onclick="showPage('cal',this)">Календарь</div>
+  <div class="nav-tab" onclick="showPage('kanban',this)">Дела</div>
+</nav>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="page-dash" class="page active">
+  <div class="metrics" id="metrics"></div>
+  <div class="dash-grid">
+    <div class="card">
+      <div class="sec-h">
+        <span class="sec-title">Все дела</span>
+        <button class="btn btn-dark" onclick="openCaseModal(null,'dash')">+ новое дело</button>
+      </div>
+      <div class="search-row">
+        <input type="text" id="d-search" placeholder="Поиск по названию или клиенту…" oninput="renderDash()">
+        <select id="d-ftype" onchange="renderDash()">
+          <option value="">Все типы</option>
+          <option value="civ">Гражданское</option>
+          <option value="arb">Арбитраж</option>
+          <option value="crim">Уголовное</option>
+          <option value="corp">Корпоративное</option>
+        </select>
+        <select id="d-fstatus" onchange="renderDash()">
+          <option value="">Все статусы</option>
+          <option value="active">В работе</option>
+          <option value="court">В суде</option>
+          <option value="pause">Пауза</option>
+          <option value="done">Закрыто</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Дело</th><th>Клиент</th><th>Тип</th><th>Статус</th><th>Срок</th><th></th>
+          </tr></thead>
+          <tbody id="d-tbl"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="sec-h"><span class="sec-title">Ближайшие события</span></div>
+        <div id="d-upcoming"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CALENDAR ============ -->
+<div id="page-cal" class="page">
+  <div class="card">
+    <div class="sec-h">
+      <div class="cal-nav">
+        <button class="btn btn-light" onclick="chMonth(-1)">←</button>
+        <span class="cal-month" id="cal-label"></span>
+        <button class="btn btn-light" onclick="chMonth(1)">→</button>
+      </div>
+      <button class="btn btn-dark" onclick="toggleCalForm()">+ событие</button>
+    </div>
+    <div class="add-form" id="cal-form">
+      <div class="form-row">
+        <input type="date" id="c-date">
+        <input type="text" id="c-name" placeholder="Название события">
+        <input type="time" id="c-time">
+        <select id="c-type">
+          <option value="court">Заседание</option>
+          <option value="deadline">Дедлайн</option>
+          <option value="meeting">Встреча</option>
+          <option value="filing">Подача</option>
+        </select>
+        <button class="btn btn-dark" onclick="addCalEvent()">Добавить</button>
+      </div>
+    </div>
+    <div class="day-names">
+      <div class="dname">пн</div><div class="dname">вт</div><div class="dname">ср</div>
+      <div class="dname">чт</div><div class="dname">пт</div><div class="dname">сб</div><div class="dname">вс</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#dce8ff"></div>Заседание</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#ffe0e0"></div>Дедлайн</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#dcf5e8"></div>Встреча</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#fff0cc"></div>Подача</div>
+    </div>
+    <div class="detail-box" id="cal-detail"><div id="cal-detail-content"></div></div>
+  </div>
+</div>
+
+<!-- ============ KANBAN ============ -->
+<div id="page-kanban" class="page">
+  <div class="sec-h" style="margin-bottom:12px">
+    <span class="sec-title">Управление делами</span>
+    <div style="display:flex;gap:14px;align-items:center">
+      <span style="font-size:12px;color:#888">В работе: <b id="k-active" style="color:#1a1a1a">0</b></span>
+      <span style="font-size:12px;color:#888">В суде: <b id="k-court" style="color:#1a1a1a">0</b></span>
+      <span style="font-size:12px;color:#888">Закрыто: <b id="k-done" style="color:#1a1a1a">0</b></span>
+      <button class="btn btn-dark" onclick="openCaseModal(null,'kanban')">+ дело</button>
+    </div>
+  </div>
+  <div class="board" id="kanban-board"></div>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div class="modal-bg" id="modal-bg" onclick="closeMdBg(event)">
+  <div class="modal">
+    <h3 id="modal-title">Новое дело</h3>
+    <label>Название дела</label>
+    <input type="text" id="m-name" placeholder="Дело о взыскании долга">
+    <label>Клиент</label>
+    <input type="text" id="m-client" placeholder="Иванов А.В. / ООО «Компания»">
+    <label>Тип дела</label>
+    <select id="m-type">
+      <option value="civ">Гражданское</option>
+      <option value="arb">Арбитраж</option>
+      <option value="crim">Уголовное</option>
+      <option value="corp">Корпоративное</option>
+    </select>
+    <label>Статус</label>
+    <select id="m-status">
+      <option value="active">В работе</option>
+      <option value="court">В суде</option>
+      <option value="pause">Пауза</option>
+      <option value="done">Закрыто</option>
+    </select>
+    <label>Срок / следующее заседание</label>
+    <input type="date" id="m-date">
+    <label>Сумма иска (₽)</label>
+    <input type="text" id="m-sum" placeholder="1 000 000">
+    <label>Заметки</label>
+    <textarea id="m-notes" placeholder="Краткое описание…"></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-light" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-dark" onclick="saveCase()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── SHARED STATE ── */
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const TN={civ:'Гражданское',arb:'Арбитраж',crim:'Уголовное',corp:'Корпоративное'};
+const TNC={civ:'tag-civ',arb:'tag-arb',crim:'tag-crim',corp:'tag-corp'};
+const SN={active:'В работе',court:'В суде',pause:'Пауза',done:'Закрыто'};
+const SC={active:'s-active',court:'s-court',pause:'s-pause',done:'s-done'};
+const KB_COLS=[{id:'new',n:'Новые'},{id:'active',n:'В работе'},{id:'court',n:'В суде'},{id:'done',n:'Закрыто'}];
+
+let cases=[
+  {id:1,name:'Взыскание долга 5М₽',client:'ИП Зуев К.Г.',type:'civ',status:'active',date:'2026-04-25',sum:'5 000 000',notes:'Договор займа, просрочка 8 мес.'},
+  {id:2,name:'Трудовой спор — незаконное увольнение',client:'Комаров А.В.',type:'civ',status:'new',date:'2026-05-10',sum:'380 000',notes:'Нарушение процедуры ст.81 ТК РФ'},
+  {id:3,name:'Арбитраж — нарушение поставки',client:'ООО «Торг»',type:'arb',status:'court',date:'2026-04-17',sum:'12 000 000',notes:'Срыв сроков поставки оборудования'},
+  {id:4,name:'Корпоративный конфликт акционеров',client:'АО «Инвест»',type:'corp',status:'active',date:'2026-04-28',sum:'',notes:'Оспаривание решения СД'},
+  {id:5,name:'Налоговый спор — доначисление НДС',client:'ООО «Прайм»',type:'arb',status:'active',date:'2026-04-22',sum:'8 500 000',notes:'Камеральная проверка'},
+  {id:6,name:'Уголовное дело 186-УК',client:'Фёдоров П.Р.',type:'crim',status:'court',date:'2026-04-16',sum:'',notes:'Ст.186 УК РФ, защита'},
+  {id:7,name:'Апелляция по ДТП',client:'Сидорова Е.Н.',type:'civ',status:'court',date:'2026-04-19',sum:'1 200 000',notes:'Возмещение вреда здоровью'},
+  {id:8,name:'Раздел имущества при разводе',client:'Николаев В.С.',type:'civ',status:'done',date:'2026-03-15',sum:'7 000 000',notes:'Квартира и авто'},
+  {id:9,name:'Регистрация ООО под ключ',client:'Стартап.рф',type:'corp',status:'done',date:'2026-03-28',sum:'',notes:'Корпоративная документация'},
+  {id:10,name:'Банкротство физлица',client:'Орлов Н.Д.',type:'civ',status:'pause',date:'2026-05-15',sum:'',notes:'Ожидание документов'},
+];
+let nid=11;
+
+const upcomingEvs=[
+  {date:'2026-04-16',type:'court',name:'Уголовное дело — Фёдоров',time:'09:00',client:'Фёдоров П.Р.'},
+  {date:'2026-04-17',type:'deadline',name:'Подача возражений',time:'18:00',client:'ООО «Торг»'},
+  {date:'2026-04-19',type:'court',name:'Апелляция по ДТП',time:'10:30',client:'Сидорова Е.Н.'},
+  {date:'2026-04-21',type:'meeting',name:'Консультация',time:'15:00',client:'Зуев К.Г.'},
+  {date:'2026-04-22',type:'deadline',name:'Ответ на претензию',time:'18:00',client:'ООО «Прайм»'},
+  {date:'2026-04-28',type:'court',name:'Арбитраж',time:'11:00',client:'АО «Инвест»'},
+  {date:'2026-04-30',type:'filing',name:'Кассационная жалоба',time:'17:00',client:'—'},
+];
+
+const calEvs={
+  '2026-04-07':[{t:'court',n:'Дело Иванов vs ООО',time:'10:00'},{t:'meeting',n:'Консультация Петровой',time:'15:30'}],
+  '2026-04-09':[{t:'deadline',n:'Подача возражений',time:'18:00'}],
+  '2026-04-14':[{t:'court',n:'Арбитраж ГК-2024/15',time:'11:30'}],
+  '2026-04-16':[{t:'court',n:'КС — Фёдоров П.Р.',time:'09:00'},{t:'meeting',n:'Встреча с доверителем',time:'14:00'}],
+  '2026-04-17':[{t:'deadline',n:'Подача возражений — Торг',time:'18:00'}],
+  '2026-04-19':[{t:'court',n:'Апелляция — Сидорова',time:'10:30'}],
+  '2026-04-21':[{t:'meeting',n:'Консультация Зуева',time:'15:00'}],
+  '2026-04-22':[{t:'deadline',n:'Ответ на претензию',time:'18:00'}],
+  '2026-04-28':[{t:'court',n:'Арбитраж АО «Инвест»',time:'11:00'},{t:'meeting',n:'Новый клиент',time:'16:00'}],
+  '2026-04-30':[{t:'filing',n:'Кассационная жалоба',time:'17:00'}],
+  '2026-05-05':[{t:'court',n:'Апелляционный суд',time:'09:30'}],
+  '2026-05-12':[{t:'deadline',n:'Исковое заявление',time:'18:00'}],
+  '2026-05-19':[{t:'meeting',n:'Медиация — Сидоров',time:'13:00'}],
+};
+
+const ETC={court:'ep-court',deadline:'ep-deadline',meeting:'ep-meeting',filing:'ep-filing'};
+const ETN={court:'Заседание',deadline:'Дедлайн',meeting:'Встреча',filing:'Подача'};
+const ETC2={court:'tag-civ',deadline:'tag-crim',meeting:'tag-corp',filing:'tag-arb'};
+
+/* ── NAV ── */
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='dash'){renderDash();}
+  if(id==='cal'){renderCal();}
+  if(id==='kanban'){renderKanban();}
+}
+
+/* ── UTILS ── */
+function pad(n){return String(n).padStart(2,'0');}
+function dk(y,m,d){return`${y}-${pad(m+1)}-${pad(d)}`;}
+function fdate(s){if(!s||s==='—')return'—';const[y,m,d]=s.split('-');return`${d}.${m}.${String(y).slice(2)}`;}
+function isUrg(s){return s&&new Date(s)<new Date(Date.now()+3*86400000);}
+function isWeek(s){return s&&new Date(s)>=new Date()&&new Date(s)<=new Date(Date.now()+7*86400000);}
+
+/* ── DASHBOARD ── */
+function renderDash(){
+  const q=(document.getElementById('d-search').value||'').toLowerCase();
+  const ft=document.getElementById('d-ftype').value;
+  const fs=document.getElementById('d-fstatus').value;
+  const rows=cases.filter(c=>{
+    return(!q||(c.name+c.client).toLowerCase().includes(q))&&(!ft||c.type===ft)&&(!fs||c.status===fs);
+  });
+
+  // metrics
+  document.getElementById('metrics').innerHTML=[
+    {l:'Всего дел',v:cases.length,s:'в базе',c:'#1a1a1a'},
+    {l:'Активных',v:cases.filter(c=>c.status==='active'||c.status==='new').length,s:'в работе',c:'#1a5a35'},
+    {l:'В суде',v:cases.filter(c=>c.status==='court').length,s:'заседания',c:'#1a3a7a'},
+    {l:'Дедлайнов',v:cases.filter(c=>isWeek(c.date)).length,s:'на этой неделе',c:'#c03030'}
+  ].map(m=>`<div class="metric"><div class="m-label">${m.l}</div><div class="m-val" style="color:${m.c}">${m.v}</div><div class="m-sub">${m.s}</div></div>`).join('');
+
+  // table
+  const tb=document.getElementById('d-tbl');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#bbb;font-size:13px">Дела не найдены</td></tr>';return;}
+  tb.innerHTML=rows.map(c=>`<tr>
+    <td><div style="font-weight:600;font-size:13px;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>${c.sum?`<div style="font-size:11px;color:#bbb">${c.sum} ₽</div>`:''}</td>
+    <td style="font-size:12px;color:#666;white-space:nowrap">${c.client}</td>
+    <td><span class="tag ${TNC[c.type]}">${TN[c.type]}</span></td>
+    <td><span class="status ${SC[c.status]}">${SN[c.status]}</span></td>
+    <td style="font-size:12px;color:${isUrg(c.date)?'#c03030':'#bbb'};white-space:nowrap">${fdate(c.date)}${isUrg(c.date)?' ⚑':''}</td>
+    <td><button class="act-btn" onclick="openCaseModal(${c.id},'dash')">Изменить</button></td>
+  </tr>`).join('');
+
+  // upcoming
+  const today=new Date();today.setHours(0,0,0,0);
+  const soon=upcomingEvs.filter(e=>new Date(e.date)>=today).slice(0,7);
+  document.getElementById('d-upcoming').innerHTML=soon.length?soon.map(e=>{
+    const[y,m,d]=e.date.split('-');
+    return`<div class="ev-item">
+      <div class="ev-meta">${d}.${m}.${y.slice(2)} · ${e.time} <span class="tag ${ETC2[e.type]}" style="font-size:10px">${ETN[e.type]}</span></div>
+      <div class="ev-name">${e.name}</div>
+      <div class="ev-client">${e.client}</div>
+    </div>`;
+  }).join(''):'<div style="font-size:13px;color:#bbb;padding:16px 0">Нет событий</div>';
+}
+
+/* ── CALENDAR ── */
+let curMonth=new Date(2026,3,1),showCalForm=false;
+
+function renderCal(){
+  const y=curMonth.getFullYear(),m=curMonth.getMonth();
+  document.getElementById('cal-label').textContent=`${MONTHS[m]} ${y}`;
+  const g=document.getElementById('cal-grid');g.innerHTML='';
+  let sd=new Date(y,m,1).getDay();if(sd===0)sd=7;
+  const dim=new Date(y,m+1,0).getDate(),dip=new Date(y,m,0).getDate();
+  const td=new Date(),tk=dk(td.getFullYear(),td.getMonth(),td.getDate());
+  let cells=[];
+  for(let i=sd-1;i>0;i--)cells.push({d:dip-i+1,m:m-1,y,o:true});
+  for(let d2=1;d2<=dim;d2++)cells.push({d:d2,m,y,o:false});
+  while(cells.length%7!==0)cells.push({d:cells.length-dim-(sd-1)+1,m:m+1,y,o:true});
+  cells.forEach(c=>{
+    const k=dk(c.y,c.m,c.d),ev=calEvs[k]||[],isT=k===tk;
+    const el=document.createElement('div');
+    el.className='cell'+(c.o?' other':'')+(isT?' today':'');
+    let h=`<div class="dnum">${c.d}</div>`;
+    ev.slice(0,3).forEach((e,i)=>{
+      h+=`<div class="ev-pill ${ETC[e.t]}" onclick="showCalDetail(event,'${k}',${i})">${e.n}</div>`;
+    });
+    if(ev.length>3)h+=`<div style="font-size:10px;color:#ccc">+${ev.length-3} ещё</div>`;
+    el.innerHTML=h;g.appendChild(el);
+  });
+}
+
+function showCalDetail(ev,k,i){
+  ev.stopPropagation();
+  const e=(calEvs[k]||[])[i];if(!e)return;
+  const[y,m,d]=k.split('-');
+  document.getElementById('cal-detail-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <span class="ev-pill ${ETC[e.t]}" style="cursor:default">${ETN[e.t]}</span>
+      <span style="font-size:12px;color:#999">${d}.${m}.${y} · ${e.time}</span>
+    </div>
+    <div style="font-size:15px;font-weight:600">${e.n}</div>`;
+  document.getElementById('cal-detail').classList.add('on');
+}
+
+function chMonth(dir){
+  curMonth.setMonth(curMonth.getMonth()+dir);
+  document.getElementById('cal-detail').classList.remove('on');
+  renderCal();
+}
+
+function toggleCalForm(){
+  showCalForm=!showCalForm;
+  document.getElementById('cal-form').className='add-form'+(showCalForm?' on':'');
+  if(showCalForm){const td=new Date();document.getElementById('c-date').value=dk(td.getFullYear(),td.getMonth(),td.getDate());}
+}
+
+function addCalEvent(){
+  const d=document.getElementById('c-date').value;
+  const n=document.getElementById('c-name').value.trim();
+  const t=document.getElementById('c-time').value||'—';
+  const tp=document.getElementById('c-type').value;
+  if(!d||!n)return;
+  if(!calEvs[d])calEvs[d]=[];
+  calEvs[d].push({t:tp,n,time:t});
+  document.getElementById('c-name').value='';
+  document.getElementById('c-time').value='';
+  const[y2,m2]=d.split('-').map(Number);
+  curMonth=new Date(y2,m2-1,1);
+  renderCal();
+}
+
+/* ── KANBAN ── */
+let dragId=null;
+
+function renderKanban(){
+  const b=document.getElementById('kanban-board');b.innerHTML='';
+  let active=0,court=0,done=0;
+  const colMap={new:'new',active:'active',court:'court',pause:'pause',done:'done'};
+  KB_COLS.forEach(col=>{
+    const colStatus=col.id;
+    const items=cases.filter(c=>c.status===colStatus);
+    if(col.id==='active')active=items.length;
+    if(col.id==='court')court=items.length;
+    if(col.id==='done')done=items.length;
+    const div=document.createElement('div');
+    div.className='kb-col';div.dataset.col=col.id;
+    div.addEventListener('dragover',e=>{e.preventDefault();div.classList.add('over');});
+    div.addEventListener('dragleave',()=>div.classList.remove('over'));
+    div.addEventListener('drop',e=>{e.preventDefault();div.classList.remove('over');dropKanban(col.id);});
+    let h=`<div class="kb-col-h"><span class="kb-col-name">${col.n}</span><span class="kb-cnt">${items.length}</span></div>`;
+    items.forEach(card=>{
+      const u=isUrg(card.date);
+      h+=`<div class="kcard" draggable="true" data-id="${card.id}" onclick="openCaseModal(${card.id},'kanban')">
+        <div class="kcard-name">${card.name}</div>
+        <div class="kcard-tags">
+          <span class="tag ${TNC[card.type]}">${TN[card.type]}</span>
+          <span class="tag tag-g">${card.client}</span>
+        </div>
+        <div class="kcard-date${u?' urg':''}">Срок: ${fdate(card.date)}${u?' ⚑':''}</div>
+      </div>`;
+    });
+    h+=`<button class="k-addbtn" onclick="openCaseModal(null,'kanban','${col.id}')">+ добавить дело</button>`;
+    div.innerHTML=h;b.appendChild(div);
+    div.querySelectorAll('.kcard[draggable]').forEach(card=>{
+      card.addEventListener('dragstart',()=>{dragId=parseInt(card.dataset.id);card.classList.add('dragging');});
+      card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+    });
+  });
+  document.getElementById('k-active').textContent=active;
+  document.getElementById('k-court').textContent=court;
+  document.getElementById('k-done').textContent=done;
+}
+
+function dropKanban(colId){
+  if(dragId===null)return;
+  const c=cases.find(x=>x.id===dragId);
+  if(c)c.status=colId;
+  dragId=null;renderKanban();
+}
+
+/* ── CASE MODAL ── */
+let editCaseId=null,modalReturnTo='dash',defaultColId=null;
+
+function openCaseModal(id,returnTo,colId){
+  editCaseId=id;
+  modalReturnTo=returnTo||'dash';
+  defaultColId=colId||null;
+  const c=id?cases.find(x=>x.id===id):null;
+  document.getElementById('modal-title').textContent=c?'Редактировать дело':'Новое дело';
+  document.getElementById('m-name').value=c?c.name:'';
+  document.getElementById('m-client').value=c?c.client:'';
+  document.getElementById('m-type').value=c?c.type:'civ';
+  document.getElementById('m-status').value=c?c.status:(colId||'active');
+  document.getElementById('m-sum').value=c?c.sum:'';
+  document.getElementById('m-notes').value=c?c.notes:'';
+  const td=new Date();
+  document.getElementById('m-date').value=c&&c.date?c.date:`${td.getFullYear()}-${pad(td.getMonth()+1)}-${pad(td.getDate())}`;
+  document.getElementById('modal-bg').classList.add('on');
+}
+
+function saveCase(){
+  const name=document.getElementById('m-name').value.trim();if(!name)return;
+  const client=document.getElementById('m-client').value.trim()||'—';
+  const type=document.getElementById('m-type').value;
+  const status=document.getElementById('m-status').value;
+  const date=document.getElementById('m-date').value;
+  const sum=document.getElementById('m-sum').value.trim();
+  const notes=document.getElementById('m-notes').value.trim();
+  if(editCaseId){
+    const c=cases.find(x=>x.id===editCaseId);
+    if(c)Object.assign(c,{name,client,type,status,date,sum,notes});
+  } else {
+    cases.push({id:nid++,name,client,type,status,date,sum,notes});
+  }
+  closeModal();
+  if(modalReturnTo==='kanban')renderKanban();
+  else renderDash();
+}
+
+function closeModal(){document.getElementById('modal-bg').classList.remove('on');}
+function closeMdBg(e){if(e.target===document.getElementById('modal-bg'))closeModal();}
+
+/* ── INIT ── */
+renderDash();
+</script>
+</body>
+</html>
